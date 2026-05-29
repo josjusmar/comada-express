@@ -14,13 +14,34 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { height: 100%; background: #080d18; overflow: hidden; }
     #root { height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-    /* iOS install banner hint */
+    #splash {
+      position: fixed; inset: 0; background: #080d18;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; z-index: 9999;
+      font-family: 'Segoe UI', sans-serif; color: white;
+      transition: opacity 0.4s;
+    }
+    #splash.hide { opacity: 0; pointer-events: none; }
+    #splash-icon {
+      width: 72px; height: 72px; border-radius: 20px;
+      background: linear-gradient(135deg,#1d4ed8,#7c3aed);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px; margin-bottom: 16px;
+    }
+    #splash h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    #splash p { font-size: 12px; color: #4b5563; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 32px; }
+    #splash-bar {
+      width: 120px; height: 3px; background: rgba(255,255,255,0.1);
+      border-radius: 2px; overflow: hidden;
+    }
+    #splash-fill {
+      height: 100%; width: 0%; background: #3b82f6; border-radius: 2px;
+      transition: width 0.3s ease;
+    }
     #install-hint {
-      display: none;
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 9999;
+      display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 9998;
       background: #1d4ed8; color: white; padding: 12px 16px;
-      font-family: 'Segoe UI', sans-serif; font-size: 13px;
-      text-align: center;
+      font-family: 'Segoe UI', sans-serif; font-size: 13px; text-align: center;
     }
     #install-hint button {
       background: transparent; border: none; color: white;
@@ -29,17 +50,54 @@
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <div id="install-hint">
-    📲 Para instalar: pulsa <strong>Compartir</strong> → <strong>Añadir a pantalla de inicio</strong>
-    <button onclick="document.getElementById('install-hint').style.display='none'">✕</button>
+  <!-- Splash screen -->
+  <div id="splash">
+    <div id="splash-icon">🚄</div>
+    <h1>Comanda Express</h1>
+    <p>Formación AVE · Serveo</p>
+    <div id="splash-bar"><div id="splash-fill"></div></div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <div id="root"></div>
+  <div id="install-hint"></div>
 
-  <script type="text/babel" data-presets="react">
+  <script>
+    // Animate splash bar
+    const fill = document.getElementById('splash-fill');
+    let pct = 0;
+    const iv = setInterval(() => {
+      pct = Math.min(pct + Math.random() * 15, 90);
+      fill.style.width = pct + '%';
+    }, 200);
+
+    function hideSplash() {
+      clearInterval(iv);
+      fill.style.width = '100%';
+      setTimeout(() => {
+        const s = document.getElementById('splash');
+        s.classList.add('hide');
+        setTimeout(() => s.remove(), 400);
+      }, 300);
+    }
+  </script>
+
+  <!-- React + ReactDOM from CDN -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel standalone (async, non-blocking) -->
+  <script>
+    window.__babelLoaded = false;
+    const babelScript = document.createElement('script');
+    babelScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js';
+    babelScript.onload = () => { window.__babelLoaded = true; loadApp(); };
+    document.head.appendChild(babelScript);
+
+    function loadApp() {
+      const appScript = document.createElement('script');
+      appScript.type = 'text/babel';
+      appScript.dataset.presets = 'react';
+      appScript.textContent = `
 // zonas-v2
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 
@@ -1020,37 +1078,38 @@ const inp = {
   borderRadius:8, padding:"9px 12px", color:"#e2e8f0", fontSize:13,
 };
 
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(React.createElement(App));
+const rootEl = document.getElementById('root');
+const reactRoot = ReactDOM.createRoot(rootEl);
+reactRoot.render(React.createElement(App));
+if (typeof hideSplash === 'function') hideSplash();
+      `;
+      document.body.appendChild(appScript);
+      Babel.transformScriptTags();
+    }
   </script>
 
   <script>
-    // Register service worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(r => console.log('SW registered'))
-          .catch(e => console.log('SW error', e));
+        navigator.serviceWorker.register('./sw.js');
       });
     }
 
-    // Show iOS install hint
     const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
     const isStandalone = window.navigator.standalone;
     if (isIOS && !isStandalone) {
       setTimeout(() => {
-        document.getElementById('install-hint').style.display = 'block';
-      }, 3000);
+        const hint = document.getElementById('install-hint');
+        hint.innerHTML = '📲 Pulsa <strong>Compartir</strong> → <strong>Añadir a pantalla de inicio</strong> <button onclick="this.parentElement.style.display=\'none\'">✕</button>';
+        hint.style.display = 'block';
+      }, 4000);
     }
 
-    // Android install prompt
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
+      e.preventDefault(); deferredPrompt = e;
       const hint = document.getElementById('install-hint');
-      hint.innerHTML = '📲 Pulsa aquí para instalar la app <button onclick="installApp()">Instalar</button>';
+      hint.innerHTML = '📲 <button onclick="installApp()" style="background:#fff;color:#1d4ed8;border:none;border-radius:6px;padding:4px 12px;font-weight:700;cursor:pointer;margin:0 8px">Instalar app</button> <button onclick="this.parentElement.style.display=\'none\'" style="background:transparent;border:none;color:white;font-size:16px;cursor:pointer;float:right">✕</button>';
       hint.style.display = 'block';
     });
 
