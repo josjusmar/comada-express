@@ -828,7 +828,7 @@ function SchemaEditor({ schema: initial, onSave, onBack }) {
     const x = Math.min(x1, x2), y = Math.min(y1, y2), w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
     drawStart.current = null;
     setDrawRect(null);
-    if (w \x3c 3 || h \x3c 3) return;
+    if (w < 3 || h < 3) return;
     setPending({ x, y, w, h });
     setZLabel("");
     setMode("view");
