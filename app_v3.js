@@ -1,9 +1,15 @@
-// React globals
-var useState = React.useState;
-var useEffect = React.useEffect;
-var useRef = React.useRef;
-var useCallback = React.useCallback;
-var useMemo = React.useMemo;
+(function() {
+  function init() {
+    if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+      setTimeout(init, 50);
+      return;
+    }
+    // React hooks
+    var useState = React.useState;
+    var useEffect = React.useEffect;
+    var useRef = React.useRef;
+    var useCallback = React.useCallback;
+    var useMemo = React.useMemo;
 
 // v3.0 - var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
@@ -1073,3 +1079,11 @@ var rootEl = document.getElementById('root');
 var reactRoot = ReactDOM.createRoot(rootEl);
 reactRoot.render(React.createElement(App));
 if (typeof hideSplash === 'function') hideSplash();
+
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
