@@ -1,5 +1,5 @@
-const CACHE = "comanda-v4";
-const ASSETS = ["./", "./index.html", "./app_v3.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "comanda-v5";
+const ASSETS = ["./", "./index.html", "./app_v4.js", "./manifest.json", "./icon-192.png", "./icon-512.png", "./favicon.ico"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
