@@ -1,4 +1,4 @@
-const CACHE = "comanda-v6";
+const CACHE = "comanda-v7";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./favicon.ico"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
